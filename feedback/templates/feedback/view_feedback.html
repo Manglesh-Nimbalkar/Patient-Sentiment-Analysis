@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Feedback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+
+        .container {
+            margin-top: 50px;
+            margin-bottom: 50px;
+            max-width: 900px; /* Adjust the maximum width as needed */
+            width: 80%; /* Set a percentage width for responsiveness */
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            color: #000000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 1);
+        }
+        
+        .feedback-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+        }
+        
+        .feedback-item h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        
+        .feedback-item p {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .feedback-item ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .feedback-item li {
+            margin-bottom: 5px;
+        }
+        
+        .sentiment-container {
+            margin-top: 20px;
+        }
+        
+        .sentiment-item {
+            margin-bottom: 10px;
+        }
+        
+        .progress-rings {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .progress-ring-container {
+            text-align: center;
+            margin: 10px;
+        }
+        
+        .progress-ring {
+            display: inline-block;
+            position: relative;
+            width: 100px;
+            height: 100px;
+            transition: transform 0.3s ease;
+        }
+
+        .progress-ring:hover {
+            transform: scale(1.1);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(247, 0, 255, 0.7);
+        }
+        
+        .progress-ring__svg {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .progress-ring__circle {
+            fill: transparent;
+            stroke-width: 8;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+        
+        .progress-ring__circle--background {
+            stroke: #ddd;
+        }
+        
+        .progress-ring__circle--positive {
+            stroke: url(#gradient-green);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+        
+        .progress-ring__circle--negative {
+            stroke: url(#gradient-red);
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        
+        .progress-ring__circle--not-analyzed {
+            stroke: url(#gradient-blue);
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.7);
+        }
+        
+        .progress-ring__tooltip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
+            color: #000000;
+        }
+
+        .sentiments-btns {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .positive-btn {
+            width: 150px;
+            height: 40px;
+            background-color: green;
+            margin-right: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center; /* Center text horizontally */
+            line-height: 40px;
+            color: white;
+        }
+
+        .negative-btn {
+            width: 150px;
+            height: 40px;
+            background-color: red;
+            margin-right: 50px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center; /* Center text horizontally */
+            line-height: 40px;
+            color: white;
+        }
+
+        .neutral-btn {
+            width: 150px;
+            height: 40px;
+            background-color: blue;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center; /* Center text horizontally */
+            line-height: 40px;
+            color: white;
+        }
+
+        .positive-btn:hover, .negative-btn:hover, .neutral-btn:hover {
+            outline: 3px solid rgb(0, 0, 0);
+            outline-offset: -3px; /* Adjust to match the border thickness */
+        }
+
+        .bar-graphs {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        canvas {
+            margin-top: 20px;
+            width: 40%; /* Adjust the width of each chart as needed */
+        }
+
+        
+    </style>
+
+    <style>
+        body {
+          background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+          background-size: 400% 400%;
+          animation: gradient 15s ease infinite;
+          {% comment %} height: 100vh; {% endcomment %}
+        }
+        
+        @keyframes gradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        </style>
+
+</head>
+<body>
+    <div class="container">
+        <h2>Feedback Analysis</h2>
+        <div class="feedback-item">
+            <h3>Feedback ID: {{ feedback.id }}</h3>
+            <p><strong>Responses:</strong></p>
+            <ul>
+                {% for answer in feedback.questions_answers_list %}
+                    <li><strong>Question {{ forloop.counter }}:</strong> {{ answer }}</li>
+                {% endfor %}
+            </ul>
+        </div> 
+
+        <!-- Sentiment analysis section -->
+        <div class="sentiment-container">
+            <h2>Sentiment Analysis</h2>
+            {% for sentiment in sentiment_data %}
+                <div class="feedback-item sentiment-item">
+                    <p><strong>Question {{ sentiment.question_number }}:</strong> {{ sentiment.sentiment_value }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Progress rings section -->
+        <div class="progress-rings">
+            {% comment %} {% for result in sentiment_result %}
+                <div class="progress-ring-container">
+                    <h4>Question {{ forloop.counter }}</h4>
+                    <div class="progress-ring" data-positive="{{ result.0 }}" data-negative="{{ result.1 }}" data-not-analyzed="{{ result.2 }}">
+                        <svg class="progress-ring__svg" width="100" height="100">
+                            <defs>
+                                <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color: green;" />
+                                    <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                                </linearGradient>
+                                <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color: red;" />
+                                    <stop offset="100%" style="stop-color: pink;" />
+                                </linearGradient>
+                                <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color: blue;" />
+                                    <stop offset="100%" style="stop-color: lightblue;" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                            <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                            <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                            <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                        </svg>
+                        <div class="progress-ring__tooltip">0%</div>
+                    </div>
+                </div>
+            {% endfor %} {% endcomment %}
+            
+            <div class="progress-ring-container">
+                <h4>Quality of Care</h4>
+                <div class="progress-ring" data-positive="{{ sentiment_result.0.0 }}" data-negative="{{ sentiment_result.0.1 }}" data-not-analyzed="{{ sentiment_result.0.2 }}">
+                    <svg class="progress-ring__svg" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: green;" />
+                                <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                            </linearGradient>
+                            <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: red;" />
+                                <stop offset="100%" style="stop-color: pink;" />
+                            </linearGradient>
+                            <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: blue;" />
+                                <stop offset="100%" style="stop-color: lightblue;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                    </svg>
+                    <div class="progress-ring__tooltip">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-ring-container">
+                <h4>Hygiene Standards</h4>
+                <div class="progress-ring" data-positive="{{ sentiment_result.1.0 }}" data-negative="{{ sentiment_result.1.1 }}" data-not-analyzed="{{ sentiment_result.1.2 }}">
+                    <svg class="progress-ring__svg" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: green;" />
+                                <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                            </linearGradient>
+                            <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: red;" />
+                                <stop offset="100%" style="stop-color: pink;" />
+                            </linearGradient>
+                            <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: blue;" />
+                                <stop offset="100%" style="stop-color: lightblue;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                    </svg>
+                    <div class="progress-ring__tooltip">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-ring-container">
+                <h4>Communication</h4>
+                <div class="progress-ring" data-positive="{{ sentiment_result.2.0 }}" data-negative="{{ sentiment_result.2.1 }}" data-not-analyzed="{{ sentiment_result.2.2 }}">
+                    <svg class="progress-ring__svg" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: green;" />
+                                <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                            </linearGradient>
+                            <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: red;" />
+                                <stop offset="100%" style="stop-color: pink;" />
+                            </linearGradient>
+                            <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: blue;" />
+                                <stop offset="100%" style="stop-color: lightblue;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                    </svg>
+                    <div class="progress-ring__tooltip">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-ring-container">
+                <h4>Waiting Time</h4>
+                <div class="progress-ring" data-positive="{{ sentiment_result.3.0 }}" data-negative="{{ sentiment_result.3.1 }}" data-not-analyzed="{{ sentiment_result.3.2 }}">
+                    <svg class="progress-ring__svg" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: green;" />
+                                <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                            </linearGradient>
+                            <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: red;" />
+                                <stop offset="100%" style="stop-color: pink;" />
+                            </linearGradient>
+                            <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: blue;" />
+                                <stop offset="100%" style="stop-color: lightblue;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                    </svg>
+                    <div class="progress-ring__tooltip">0%</div>
+                </div>
+            </div>
+
+            <div class="progress-ring-container">
+                <h4>Facilities and Amenities</h4>
+                <div class="progress-ring" data-positive="{{ sentiment_result.4.0 }}" data-negative="{{ sentiment_result.4.1 }}" data-not-analyzed="{{ sentiment_result.4.2 }}">
+                    <svg class="progress-ring__svg" width="100" height="100">
+                        <defs>
+                            <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: green;" />
+                                <stop offset="100%" style="stop-color: rgb(138, 216, 138);" />
+                            </linearGradient>
+                            <linearGradient id="gradient-red" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: red;" />
+                                <stop offset="100%" style="stop-color: pink;" />
+                            </linearGradient>
+                            <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color: blue;" />
+                                <stop offset="100%" style="stop-color: lightblue;" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring__circle progress-ring__circle--background" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--positive" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--negative" stroke-width="6" r="45" cx="50" cy="50" />
+                        <circle class="progress-ring__circle progress-ring__circle--not-analyzed" stroke-width="6" r="45" cx="50" cy="50" />
+                    </svg>
+                    <div class="progress-ring__tooltip">0%</div>
+                </div>
+            </div>
+
+
+        </div>        
+                
+
+        <div class="sentiments-btns">
+            <div class="positive-btn">Positive</div>
+            <div class="negative-btn">Negative</div>
+            <div class="neutral-btn">Neutral</div>
+        </div>
+
+        <!-- Emotion counts section with bar graphs -->
+        <h2>Emotion Analysis</h2>
+        <div class="bar-graphs">
+            <canvas id="emotion-chart" width="400" height="150"></canvas>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressRings = document.querySelectorAll('.progress-ring');
+        
+            progressRings.forEach(ring => {
+                const positive = parseInt(ring.getAttribute('data-positive'));
+                const negative = parseInt(ring.getAttribute('data-negative'));
+                const notAnalyzed = parseInt(ring.getAttribute('data-not-analyzed'));
+                const total = positive + negative + notAnalyzed;
+        
+                const positivePercent = (positive / total) * 100;
+                const negativePercent = (negative / total) * 100;
+                const notAnalyzedPercent = (notAnalyzed / total) * 100;
+        
+                const positiveCircle = ring.querySelector('.progress-ring__circle--positive');
+                const negativeCircle = ring.querySelector('.progress-ring__circle--negative');
+                const notAnalyzedCircle = ring.querySelector('.progress-ring__circle--not-analyzed');
+                const tooltip = ring.querySelector('.progress-ring__tooltip');
+        
+                const radius = positiveCircle.r.baseVal.value;
+                const circumference = 2 * Math.PI * radius;
+        
+                function setProgress(circle, percent) {
+                    const offset = circumference - (percent / 100) * circumference;
+                    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                    circle.style.strokeDashoffset = offset;
+                }
+        
+                // Set the background circle
+                const backgroundCircle = ring.querySelector('.progress-ring__circle--background');
+                setProgress(backgroundCircle, 100);
+        
+                // Set the progress circles
+                setProgress(positiveCircle, positivePercent);
+                setProgress(negativeCircle, negativePercent);
+                setProgress(notAnalyzedCircle, notAnalyzedPercent);
+        
+                // Adjust the offsets for overlapping segments
+                positiveCircle.style.strokeDashoffset = 0;
+                negativeCircle.style.strokeDashoffset = circumference * (positivePercent / 100);
+                notAnalyzedCircle.style.strokeDashoffset = circumference * ((positivePercent + negativePercent) / 100);
+        
+                // Update tooltip initially for positive
+                tooltip.textContent = `${Math.round(positivePercent)}% Positive`;
+            });
+
+            // Event listeners for buttons
+            const positiveBtn = document.querySelector('.positive-btn');
+            const negativeBtn = document.querySelector('.negative-btn');
+            const neutralBtn = document.querySelector('.neutral-btn');
+
+            positiveBtn.addEventListener('mouseenter', () => {
+                progressRings.forEach(ring => {
+                    const positivePercent = parseFloat(ring.getAttribute('data-positive')) / (parseFloat(ring.getAttribute('data-positive')) + parseFloat(ring.getAttribute('data-negative')) + parseFloat(ring.getAttribute('data-not-analyzed'))) * 100;
+                    const tooltip = ring.querySelector('.progress-ring__tooltip');
+                    tooltip.textContent = `${Math.round(positivePercent)}% Positive`;
+                });
+            });
+
+            negativeBtn.addEventListener('mouseenter', () => {
+                progressRings.forEach(ring => {
+                    const negativePercent = parseFloat(ring.getAttribute('data-negative')) / (parseFloat(ring.getAttribute('data-positive')) + parseFloat(ring.getAttribute('data-negative')) + parseFloat(ring.getAttribute('data-not-analyzed'))) * 100;
+                    const tooltip = ring.querySelector('.progress-ring__tooltip');
+                    tooltip.textContent = `${Math.round(negativePercent)}% Negative`;
+                });
+            });
+
+            neutralBtn.addEventListener('mouseenter', () => {
+                progressRings.forEach(ring => {
+                    const notAnalyzedPercent = parseFloat(ring.getAttribute('data-not-analyzed')) / (parseFloat(ring.getAttribute('data-positive')) + parseFloat(ring.getAttribute('data-negative')) + parseFloat(ring.getAttribute('data-not-analyzed'))) * 100;
+                    const tooltip = ring.querySelector('.progress-ring__tooltip');
+                    tooltip.textContent = `${Math.round(notAnalyzedPercent)}% Neutral`;
+                });
+            });
+
+            // Reset tooltips on mouse leave
+            [positiveBtn, negativeBtn, neutralBtn].forEach(btn => {
+                btn.addEventListener('mouseleave', () => {
+                    progressRings.forEach(ring => {
+                        const positivePercent = parseFloat(ring.getAttribute('data-positive')) / (parseFloat(ring.getAttribute('data-positive')) + parseFloat(ring.getAttribute('data-negative')) + parseFloat(ring.getAttribute('data-not-analyzed'))) * 100;
+                        const tooltip = ring.querySelector('.progress-ring__tooltip');
+                        tooltip.textContent = `${Math.round(positivePercent)}% Positive`;
+                    });
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const emotions = ['Happy', 'Anger', 'Fear', 'Sad', 'Neutral'];
+            const emotionCounts = [
+                {{ emotion_counts.Happy }},
+                {{ emotion_counts.Anger }},
+                {{ emotion_counts.Fear }},
+                {{ emotion_counts.Sad }},
+                {{ emotion_counts.Neutral }},
+                {% comment %} {{ emotion_counts["Not analyzed"] }} {% endcomment %}
+            ];
+
+            const ctx = document.getElementById('emotion-chart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: emotions,
+                    datasets: [{
+                        label: 'Emotion Counts',
+                        backgroundColor: [
+                            'rgba(0, 255, 0, 1)', // Red for Anger
+                            'rgba(255, 0, 0, 1)', // Blue for Happy
+                            'rgba(255, 205, 86, 1)', // Yellow for Fear
+                            'rgba(75, 192, 192, 1)', // Green for Sad
+                            'rgba(153, 102, 255, 1)', // Purple for Neutral
+                            'rgba(201, 203, 207, 1)' // Grey for Not analyzed
+                        ],
+                        borderColor: [
+                            'rgba(0, 255, 0, 1)',
+                            'rgba(255, 0, 0, 1)',
+                            'rgba(255, 205, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(201, 203, 207, 1)'
+                        ],
+                        borderWidth: 1,
+                        data: emotionCounts
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+
+        
+    </script>
+</body>
+</html>

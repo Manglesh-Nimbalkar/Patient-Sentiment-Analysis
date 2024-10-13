@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 3em;
+            color: #000000;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        p {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-in-out 0.5s;
+        }
+
+        a {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 500;
+            animation: fadeIn 1s ease-in-out 1s;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        a:active {
+            background-color: #004494;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .decorative-line {
+            width: 80px;
+            height: 5px;
+            background-color: #007bff;
+            margin: 20px auto;
+            border-radius: 3px;
+            animation: fadeIn 1s ease-in-out 0.5s;
+        }
+    </style>
+    <style>
+        body {
+          background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+          background-size: 400% 400%;
+          animation: gradient 15s ease infinite;
+          height: 100vh;
+        }
+        
+        @keyframes gradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        </style>
+</head>
+<body>
+    <h2>Thank You!</h2>
+    <div class="decorative-line"></div>
+    <p>Thank you for your feedback.</p>
+    <a href="{% url 'view_feedback' feedback_id %}">View Your Feedback</a>
+</body>
+</html>

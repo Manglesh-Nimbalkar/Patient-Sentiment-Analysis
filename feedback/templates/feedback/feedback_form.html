@@ -1,0 +1,454 @@
+<!-- feedback/templates/feedback_form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Form</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'feedback/feedback_form.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.feedback-question:first').addClass('active'); // Show the first question initially
+
+            updateButtonVisibility(); // Call initially to set button visibility
+
+            $('.btn-next').click(function() {
+                var current = $('.feedback-question.active');
+                current.removeClass('active');
+                current.next('.feedback-question').addClass('active');
+                updateButtonVisibility(); // Update button visibility after navigation
+            });
+
+            $('.btn-prev').click(function() {
+                var current = $('.feedback-question.active');
+                current.removeClass('active');
+                current.prev('.feedback-question').addClass('active');
+                updateButtonVisibility(); // Update button visibility after navigation
+            });
+
+            function updateButtonVisibility() {
+                var currentQuestion = $('.feedback-question.active');
+                var isFirstQuestion = currentQuestion.is(':first-child');
+                var isLastQuestion = currentQuestion.is(':last-child');
+
+                if (isFirstQuestion) {
+                    $('.btn-prev').hide(); // Hide previous button on first question
+                } else {
+                    $('.btn-prev').show(); // Show previous button on other questions
+                }
+
+                if (isLastQuestion) {
+                    $('.btn-next').hide(); // Hide next button on last question
+                } else {
+                    $('.btn-next').show(); // Show next button on other questions
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const progressBar = document.getElementById('progressBar');
+        const form = document.getElementById('feedbackForm');
+        const fields = form.querySelectorAll('.feedback-question');
+        const totalQuestions = fields.length;
+        let currentQuestion = 1;
+
+        function updateProgressBar() {
+            const percent = (currentQuestion / totalQuestions) * 100;
+            progressBar.style.width = percent + '%';
+        }
+
+        updateProgressBar();
+
+        document.querySelector('.btn-next').addEventListener('click', function() {
+            if (currentQuestion < totalQuestions) {
+                currentQuestion++;
+                updateProgressBar();
+            }
+        });
+
+        document.querySelector('.btn-prev').addEventListener('click', function() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                updateProgressBar();
+            }
+        });
+    });
+
+
+    </script>
+</head>
+<body>
+    <style>
+        body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Arial', sans-serif;
+        background-color: #4e54c8;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+    }
+
+.feedback-form-container {
+    width: 80%;
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 30px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    transition: background-color 0.3s ease;
+}
+
+.feedback-form-container:hover {
+    background-color: #f7f7f7;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+}
+
+#title {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.feedback-questions {
+    margin-bottom: 20px;
+    font-size: large;
+}
+
+.feedback-question {
+    display: none;
+}
+
+.feedback-question.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.feedback-textarea {
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feedback-textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.button-container button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 0px 10px;
+}
+
+.button-container button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.button-container button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.button-container button:not(:last-child) {
+    margin-right: 10px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 5px;
+    background-color: #f0f0f0;
+    /* margin-bottom: 20px; */
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+
+.area{
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    background: #4e54c8;  
+    background: -webkit-linear-gradient(to left, #8f94fb, #4e54c8);  
+    width: 93%;
+    height: 93%;
+    z-index: -1;
+}
+
+.circles{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.circles li{
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+    
+}
+
+.circles li:nth-child(1){
+    left: 25%;
+    width: 80px;
+    height: 80px;
+    animation-delay: 0s;
+}
+
+
+.circles li:nth-child(2){
+    left: 10%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 2s;
+    animation-duration: 12s;
+}
+
+.circles li:nth-child(3){
+    left: 70%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 4s;
+}
+
+.circles li:nth-child(4){
+    left: 40%;
+    width: 60px;
+    height: 60px;
+    animation-delay: 0s;
+    animation-duration: 18s;
+}
+
+.circles li:nth-child(5){
+    left: 65%;
+    width: 20px;
+    height: 20px;
+    animation-delay: 0s;
+}
+
+.circles li:nth-child(6){
+    left: 75%;
+    width: 110px;
+    height: 110px;
+    animation-delay: 3s;
+}
+
+.circles li:nth-child(7){
+    left: 35%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 7s;
+}
+
+.circles li:nth-child(8){
+    left: 50%;
+    width: 25px;
+    height: 25px;
+    animation-delay: 15s;
+    animation-duration: 45s;
+}
+
+.circles li:nth-child(9){
+    left: 20%;
+    width: 15px;
+    height: 15px;
+    animation-delay: 2s;
+    animation-duration: 35s;
+}
+
+.circles li:nth-child(10){
+    left: 85%;
+    width: 150px;
+    height: 150px;
+    animation-delay: 0s;
+    animation-duration: 11s;
+}
+
+
+
+@keyframes animate {
+
+    0%{
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: 0;
+    }
+
+    100%{
+        transform: translateY(-1000px) rotate(720deg);
+        opacity: 0;
+        border-radius: 50%;
+    }
+
+}
+
+
+        
+    </style>
+
+    <div class="area">
+        <ul class="circles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+
+    <div class="feedback-form-container">
+        <h2 id="title">Feedback Form</h2>
+        <form method="post" id="feedbackForm">
+            {% csrf_token %}
+            <div class="feedback-questions">
+                {% for field in form.visible_fields %}
+                    <div class="feedback-question">
+                        <label for="{{ field.id_for_label }}">Question {{ forloop.counter }}: {{ field.label }}</label>
+                        {{ field }}
+                        <!-- <button type="button" class="mic-btn" onclick="startDictation('{{ field.id_for_label }}')">🎤</button> -->
+                    </div>
+                {% endfor %}
+            </div>
+    
+            <div class="button-container">
+                <button type="button" class="btn-prev">Previous</button>
+                <button type="button" class="btn-next" id="nextBtn">Next</button>
+                <button type="submit">Submit Feedback</button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var recognition;
+            var isRecognizing = false;
+    
+            if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                recognition = new webkitSpeechRecognition();
+    
+                recognition.continuous = true; // Enable continuous mode
+                recognition.interimResults = true; // Use interimResults to get partial results
+                recognition.lang = 'en-US';
+    
+                recognition.onstart = function() {
+                    console.log('Voice recognition started. Try speaking into the microphone.');
+                    isRecognizing = true;
+                };
+    
+                recognition.onresult = function(event) {
+                    // Find the input field dynamically based on the active question
+                    var activeQuestion = document.querySelector('.feedback-question.active');
+                    var inputField = activeQuestion.querySelector('input, textarea'); // Assuming input or textarea is used
+    
+                    if (!inputField) {
+                        console.error('Input field not found');
+                        return;
+                    }
+    
+                    var interimTranscript = '';
+                    var finalTranscript = '';
+    
+                    console.log('Recognition result event:', event);
+    
+                    for (var i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+    
+                    console.log('Final Transcript:', finalTranscript);
+                    console.log('Interim Transcript:', interimTranscript);
+    
+                    inputField.value = finalTranscript || interimTranscript;
+                };
+    
+                recognition.onerror = function(event) {
+                    console.error('Error occurred in recognition:', event.error);
+                    recognition.stop();
+                    isRecognizing = false;
+                    document.getElementById('nextBtn').click();
+                };
+    
+                recognition.onend = function() {
+                    console.log('Recognition ended');
+                    isRecognizing = false;
+                };
+    
+                document.addEventListener('keydown', function(event) {
+                    if (event.code === 'Space' && !isRecognizing) {
+                        recognition.start();
+                    }
+                });
+    
+                document.addEventListener('keyup', function(event) {
+                    if (event.code === 'Space' && isRecognizing) {
+                        recognition.stop();
+                    }
+                });
+            } else {
+                alert('Speech recognition not supported in this browser.');
+            }
+        });
+    </script>
+        
+</body>
+</html>
